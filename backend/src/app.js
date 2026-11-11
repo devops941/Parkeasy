@@ -67,11 +67,12 @@ app.get('/api/v1', (_req, res) => {
   });
 });
 
-// API Routes
-app.use('/api/v1', healthRoutes);
+// Shared API router (mounted under both /api/v1 and / so clients omitting /api/v1 still resolve)
+const apiRouter = express.Router();
+apiRouter.use(healthRoutes);
 
 // Database readiness guard (bypasses /health)
-app.use('/api/v1', (req, res, next) => {
+apiRouter.use((_req, res, next) => {
   if (mongoose.connection.readyState !== 1) {
     return res.status(503).json({
       success: false,
@@ -81,16 +82,19 @@ app.use('/api/v1', (req, res, next) => {
   next();
 });
 
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/admin', adminRoutes);
-app.use('/api/v1/parking', parkingRoutes);
-app.use('/api/v1/wallet', walletRoutes);
-app.use('/api/v1/handler', handlerRoutes);
-app.get('/api/v1/me/qr', authenticate, getProfileQR);
+apiRouter.use('/auth', authRoutes);
+apiRouter.use('/admin', adminRoutes);
+apiRouter.use('/parking', parkingRoutes);
+apiRouter.use('/wallet', walletRoutes);
+apiRouter.use('/handler', handlerRoutes);
+apiRouter.get('/me/qr', authenticate, getProfileQR);
 
 // Direct feedback endpoints
-app.post('/api/v1/feedback', authenticate, validate(createFeedbackSchema), submitFeedback);
-app.get('/api/v1/feedback', authenticate, authorize('admin'), validate(paginationQuerySchema), getFeedbackList);
+apiRouter.post('/feedback', authenticate, validate(createFeedbackSchema), submitFeedback);
+apiRouter.get('/feedback', authenticate, authorize('admin'), validate(paginationQuerySchema), getFeedbackList);
+
+app.use('/api/v1', apiRouter);
+app.use('/', apiRouter);
 
 // 404 Handler for undefined routes
 app.all('*', (req, res, next) => {
