@@ -34,6 +34,8 @@ import {
   setApiBaseUrl,
   getAutoDetectedUrl,
   DEFAULT_API_URL,
+  PRODUCTION_API_URL,
+  normalizeApiBaseUrl,
   resolveEffectiveApiUrl,
 } from '../../api/client.js';
 import { storage } from '../../utils/storage.js';
@@ -150,7 +152,7 @@ export const LoginScreen = ({ navigation }) => {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
       document.activeElement?.blur?.();
     }
-    const trimmed = (tempUrl || '').trim().replace(/\/+$/, '');
+    const trimmed = normalizeApiBaseUrl(tempUrl);
     if (!trimmed.startsWith('http')) {
       showToast('URL must start with http:// or https://');
       return;
@@ -537,7 +539,7 @@ export const LoginScreen = ({ navigation }) => {
 
               <TouchableOpacity
                 style={styles.presetBtn}
-                onPress={() => setPresetUrl('https://api.parkeasy.cloud/v1')}
+                onPress={() => setPresetUrl(PRODUCTION_API_URL)}
               >
                 <Text style={styles.presetBtnText}>Cloud/Prod</Text>
               </TouchableOpacity>

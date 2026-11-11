@@ -3,6 +3,24 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import { storage } from '../utils/storage.js';
 
+export const PRODUCTION_API_URL = 'https://parkeasy-7qe2.onrender.com/api/v1';
+
+/**
+ * Ensures user-entered or env API URLs include the /api/v1 base path.
+ */
+export const normalizeApiBaseUrl = (rawUrl) => {
+  if (typeof rawUrl !== 'string') return '';
+  const cleaned = rawUrl.trim().replace(/\/+$/, '');
+  if (!cleaned) return '';
+  try {
+    const parsed = new URL(cleaned);
+    if (!parsed.pathname || parsed.pathname === '/') {
+      return `${cleaned}/api/v1`;
+    }
+  } catch (_) {}
+  return cleaned;
+};
+
 // Auto-detect computer's local network IP from Expo bundler
 export const getAutoDetectedUrl = () => {
   const hostUri =
@@ -16,17 +34,11 @@ export const getAutoDetectedUrl = () => {
   }
 
   if (Platform.OS === 'web') {
-    return 'http://localhost:5000/api/v1';
+    return normalizeApiBaseUrl(process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000/api/v1');
   }
 
-  // Use env variable if set (add EXPO_PUBLIC_API_URL to your .env)
-  if (process.env.EXPO_PUBLIC_API_URL) {
-    return process.env.EXPO_PUBLIC_API_URL;
-  }
-
-  // On physical devices without Expo bundler, return null so the user
-  // is prompted to configure the server URL via the Settings icon.
-  return null;
+  // Fallback to env override or hosted Render API for standalone APK builds
+  return normalizeApiBaseUrl(process.env.EXPO_PUBLIC_API_URL || PRODUCTION_API_URL);
 };
 
 export const DEFAULT_API_URL = getAutoDetectedUrl();
@@ -46,18 +58,22 @@ export const isPrivateLanUrl = (url) =>
 export const resolveEffectiveApiUrl = async () => {
   const customUrl = await storage.getItem('customApiUrl');
   if (customUrl) {
+    const normalizedCustom = normalizeApiBaseUrl(customUrl);
     if (
       DEFAULT_API_URL &&
       isPrivateLanUrl(DEFAULT_API_URL) &&
-      isPrivateLanUrl(customUrl) &&
-      customUrl.trim() !== DEFAULT_API_URL.trim()
+      isPrivateLanUrl(normalizedCustom) &&
+      normalizedCustom !== DEFAULT_API_URL.trim()
     ) {
       await storage.removeItem('customApiUrl');
       apiClient.defaults.baseURL = DEFAULT_API_URL;
       return DEFAULT_API_URL;
     }
-    apiClient.defaults.baseURL = customUrl;
-    return customUrl;
+    if (normalizedCustom !== customUrl) {
+      await storage.setItem('customApiUrl', normalizedCustom);
+    }
+    apiClient.defaults.baseURL = normalizedCustom;
+    return normalizedCustom;
   }
   apiClient.defaults.baseURL = DEFAULT_API_URL || undefined;
   return DEFAULT_API_URL;
@@ -65,7 +81,7 @@ export const resolveEffectiveApiUrl = async () => {
 
 export const apiClient = axios.create({
   baseURL: DEFAULT_API_URL || undefined,
-  timeout: 10000,
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
   },

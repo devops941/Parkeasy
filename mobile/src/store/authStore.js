@@ -94,12 +94,14 @@ export const useAuthStore = create((set, get) => ({
       return { success: true, role: user.role };
     } catch (err) {
       let message = err.response?.data?.message || err.message || 'Login failed';
-      if (err.message === 'Network Error' || err.code === 'ERR_NETWORK') {
+      if (err.message === 'Network Error' || err.code === 'ERR_NETWORK' || err.code === 'ECONNABORTED') {
         const url = err.config?.baseURL || apiClient.defaults.baseURL;
         if (!url) {
           message = 'No server URL configured. Tap the "Server" pill at the bottom of the login screen to set your API URL.';
+        } else if (err.code === 'ECONNABORTED') {
+          message = `Server at ${url} took too long to respond (Render may be waking up). Please try again in a few seconds.`;
         } else {
-          message = `Cannot reach server at ${url}. Tap the "Server" pill on the login screen to update the URL, and ensure your backend is running on the same network.`;
+          message = `Cannot reach server at ${url}. Tap the "Server" pill on the login screen to update the URL, and ensure your backend is running.`;
         }
       }
       set({ isLoading: false, error: message });
