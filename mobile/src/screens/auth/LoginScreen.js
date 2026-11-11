@@ -52,9 +52,9 @@ export const LoginScreen = ({ navigation }) => {
   const [toastAnim] = useState(new Animated.Value(0));
 
   // Server URL editor
-  const [currentServerUrl, setCurrentServerUrl] = useState(apiClient.defaults.baseURL);
+  const [currentServerUrl, setCurrentServerUrl] = useState(apiClient.defaults.baseURL || '');
   const [isUrlModalVisible, setIsUrlModalVisible] = useState(false);
-  const [tempUrl, setTempUrl] = useState(apiClient.defaults.baseURL);
+  const [tempUrl, setTempUrl] = useState(apiClient.defaults.baseURL || '');
 
   const { login, isLoading, error, clearError } = useAuthStore();
 
@@ -150,7 +150,7 @@ export const LoginScreen = ({ navigation }) => {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
       document.activeElement?.blur?.();
     }
-    const trimmed = tempUrl.trim().replace(/\/+$/, '');
+    const trimmed = (tempUrl || '').trim().replace(/\/+$/, '');
     if (!trimmed.startsWith('http')) {
       showToast('URL must start with http:// or https://');
       return;
@@ -169,6 +169,10 @@ export const LoginScreen = ({ navigation }) => {
   };
 
   const setPresetUrl = (url) => {
+    if (!url) {
+      showToast('Wi-Fi auto-detect is only available in Expo Go. Enter your backend URL.');
+      return;
+    }
     setTempUrl(url);
   };
 

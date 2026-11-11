@@ -3,13 +3,17 @@ import { Platform } from 'react-native';
 
 // Configure notification behavior when app is in foreground (native only)
 if (Platform.OS !== 'web') {
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: false,
-    }),
-  });
+  try {
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+      }),
+    });
+  } catch (err) {
+    console.warn('[Notifications] Handler init error:', err?.message || err);
+  }
 }
 
 /**
