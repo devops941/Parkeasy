@@ -49,6 +49,24 @@ if (config.env !== 'test') {
   app.use(morgan(config.env === 'development' ? 'dev' : 'combined'));
 }
 
+// Root & API info routes
+app.get('/', (_req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'ParkEasy API is running',
+    health: '/api/v1/health',
+    apiBase: '/api/v1',
+  });
+});
+
+app.get('/api/v1', (_req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'ParkEasy API v1',
+    health: '/api/v1/health',
+  });
+});
+
 // API Routes
 app.use('/api/v1', healthRoutes);
 
