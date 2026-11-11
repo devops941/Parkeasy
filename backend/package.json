@@ -1,0 +1,34 @@
+{
+  "name": "parkeasy-backend",
+  "version": "1.0.0",
+  "description": "ParkEasy - QR-based parking booking & management system backend",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "build": "node src/scripts/buildCheck.js",
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "seed": "node src/scripts/seedAdmin.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --detectOpenHandles --runInBand --forceExit"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.5",
+    "morgan": "^1.10.0",
+    "node-cron": "^4.6.0",
+    "razorpay": "^2.9.5",
+    "socket.io": "^4.8.4",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "jest": "^30.5.2",
+    "mongodb-memory-server": "^11.3.0",
+    "supertest": "^7.3.1"
+  }
+}
